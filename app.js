@@ -23,7 +23,10 @@ app.use(requestLogger);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+import subscriptionRoutes from './routes/subscriptions.js';
+
 app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/logs', logsRoutes);
 
 // health

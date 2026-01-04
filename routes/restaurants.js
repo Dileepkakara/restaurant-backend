@@ -1,37 +1,27 @@
 import express from 'express';
-import Restaurant from '../models/Restaurant.js';
-import User from '../models/User.js';
 import { requireRole } from '../middlewares/auth.js';
+import validate from '../middlewares/validate.js';
+import restaurantValidation from '../validation/restaurant.js';
+import { getPending, approveRestaurant, listApproved, createBySuperAdmin, updateRestaurant, deleteRestaurant } from '../controllers/restaurantController.js';
 
 const router = express.Router();
 
 // Get pending restaurants for superadmin review
-router.get('/pending', requireRole('super-admin'), async (req, res) => {
-  try {
-    const pending = await Restaurant.find({ status: 'pending' }).populate('owner', 'name email').select('+logo');
-    res.json(pending);
-  } catch (e) {
-    res.status(500).json({ message: 'Failed to load pending restaurants' });
-  }
-});
+router.get('/pending', requireRole('super-admin'), validate(restaurantValidation.approveSchema), getPending);
 
 // Approve a restaurant and mark owner as approved
-router.post('/:id/approve', requireRole('super-admin'), async (req, res) => {
-  try {
-    const restaurant = await Restaurant.findById(req.params.id);
-    if (!restaurant) return res.status(404).json({ message: 'Not found' });
+router.post('/:id/approve', requireRole('super-admin'), validate(restaurantValidation.approveSchema), approveRestaurant);
 
-    restaurant.status = 'approved';
-    restaurant.approved = true;
-    await restaurant.save();
+// List approved restaurants
+router.get('/approved', requireRole('super-admin'), listApproved);
 
-    // mark owner as approved
-    await User.findByIdAndUpdate(restaurant.owner, { approved: true });
+// Create a restaurant (by superadmin) - auto approved
+router.post('/', requireRole('super-admin'), validate(restaurantValidation.createSchema), createBySuperAdmin);
 
-    res.json({ message: 'Restaurant approved' });
-  } catch (e) {
-    res.status(500).json({ message: 'Approval failed' });
-  }
-});
+// Update restaurant
+router.put('/:id', requireRole('super-admin'), validate(restaurantValidation.updateSchema), updateRestaurant);
+
+// Delete restaurant
+router.delete('/:id', requireRole('super-admin'), deleteRestaurant);
 
 export default router;
