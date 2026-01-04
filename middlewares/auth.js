@@ -34,3 +34,9 @@ export function requireRole(role) {
     next();
   };
 }
+
+// Require authentication (any authenticated user)
+export function requireAuth(req, res, next) {
+  if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+  next();
+}

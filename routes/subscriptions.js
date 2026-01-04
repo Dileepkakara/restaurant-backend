@@ -5,7 +5,8 @@ import subscriptionValidation from '../validation/subscription.js';
 import { listPlans, getPlan, createPlan, updatePlan, deletePlan } from '../controllers/subscriptionController.js';
 
 const router = express.Router();
-
+// Public route for fetching plans (no auth required for signup)
+router.get('/public', listPlans);
 router.get('/', requireRole('super-admin'), listPlans);
 router.get('/:id', requireRole('super-admin'), getPlan);
 router.post('/', requireRole('super-admin'), validate(subscriptionValidation.createSchema), createPlan);

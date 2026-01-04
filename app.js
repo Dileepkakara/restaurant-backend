@@ -7,6 +7,9 @@ import authRoutes from './routes/auth.js';
 import uploadRoutes from './routes/upload.js';
 import logsRoutes from './routes/logs.js';
 import restaurantRoutes from './routes/restaurants.js';
+import subscriptionRoutes from './routes/subscriptions.js';
+import menuItemRoutes from './routes/menuItems.js';
+import tableRoutes from './routes/tables.js';
 import { requestLogger } from './middlewares/logger.js';
 import { authMiddleware } from './middlewares/auth.js';
 
@@ -23,10 +26,11 @@ app.use(requestLogger);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
-import subscriptionRoutes from './routes/subscriptions.js';
 
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/menu-items', menuItemRoutes);
+app.use('/api/tables', tableRoutes);
 app.use('/api/logs', logsRoutes);
 
 // health

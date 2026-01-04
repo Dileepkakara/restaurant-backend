@@ -7,7 +7,9 @@ export const registerSchema = z.object({
   role: z.string().optional(),
   location: z.string().optional(),
   restaurantName: z.string().optional(),
-  avatarUrl: z.string().optional()
+  avatarUrl: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  subscriptionPlan: z.string().optional()
 });
 
 export const loginSchema = z.object({

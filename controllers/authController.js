@@ -3,10 +3,11 @@ import jwt from 'jsonwebtoken';
 import cloudinary from '../utils/cloudinary.js';
 import User from '../models/User.js';
 import Restaurant from '../models/Restaurant.js';
+import Plan from '../models/Plan.js';
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role, location, avatarUrl, restaurantName } = req.body;
+    const { name, email, password, role, location, avatarUrl, restaurantName, phoneNumber, subscriptionPlan } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already in use' });
@@ -37,6 +38,7 @@ export const register = async (req, res) => {
       const r = new Restaurant({
         name: restaurantName || `${name}'s Restaurant`,
         address: location,
+        phoneNumber: phoneNumber,
         owner: user._id,
         status: 'pending',
         approved: false
@@ -55,6 +57,18 @@ export const register = async (req, res) => {
       }
 
       await r.save();
+
+      // Create subscription if plan is selected
+      if (subscriptionPlan) {
+        const plan = await Plan.findById(subscriptionPlan);
+        if (plan) {
+          // Here you would typically create a subscription record
+          // For now, we'll just store the plan reference on the restaurant
+          r.subscriptionPlan = plan._id;
+          await r.save();
+        }
+      }
+
       user.restaurant = r._id;
       await user.save();
     }
