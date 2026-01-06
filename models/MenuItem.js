@@ -10,7 +10,7 @@ const menuItemSchema = new mongoose.Schema(
     isVeg: { type: Boolean, default: true },
     isRecommended: { type: Boolean, default: false },
     isPopular: { type: Boolean, default: false },
-    isNewItem: { type: Boolean, default: false },
+    isNewArrival: { type: Boolean, default: false },
     isTodaySpecial: { type: Boolean, default: false },
     spicyLevel: { type: Number, min: 1, max: 3, default: 1 },
     isAvailable: { type: Boolean, default: true },

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "migrate": "node scripts/migrate-avatars-to-restaurants.js"
+    "migrate": "node scripts/migrate-avatars-to-restaurants.js",
+    "seed": "node scripts/seed-sample-data.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

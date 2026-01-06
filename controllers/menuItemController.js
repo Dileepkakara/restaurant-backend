@@ -11,8 +11,8 @@ export const getMenuItems = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    // Check if user owns this restaurant or is super-admin
-    if (req.user.role !== 'super-admin' && restaurant.owner.toString() !== req.user.id) {
+    // Check if user owns this restaurant or is super-admin, or if restaurant is approved (for demo)
+    if (req.user.role !== 'super-admin' && restaurant.owner.toString() !== req.user.id && !restaurant.approved) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -34,8 +34,8 @@ export const createMenuItem = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    // Check if user owns this restaurant or is super-admin
-    if (req.user.role !== 'super-admin' && restaurant.owner.toString() !== req.user.id) {
+    // Check if user owns this restaurant or is super-admin, or if restaurant is approved (for demo)
+    if (req.user.role !== 'super-admin' && restaurant.owner.toString() !== req.user.id && !restaurant.approved) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -59,8 +59,8 @@ export const updateMenuItem = async (req, res) => {
       return res.status(404).json({ message: 'Menu item not found' });
     }
 
-    // Check if user owns the restaurant or is super-admin
-    if (req.user.role !== 'super-admin' && menuItem.restaurant.owner.toString() !== req.user.id) {
+    // Check if user owns the restaurant or is super-admin, or if restaurant is approved (for demo)
+    if (req.user.role !== 'super-admin' && menuItem.restaurant.owner.toString() !== req.user.id && !menuItem.restaurant.approved) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -81,8 +81,8 @@ export const deleteMenuItem = async (req, res) => {
       return res.status(404).json({ message: 'Menu item not found' });
     }
 
-    // Check if user owns the restaurant or is super-admin
-    if (req.user.role !== 'super-admin' && menuItem.restaurant.owner.toString() !== req.user.id) {
+    // Check if user owns the restaurant or is super-admin, or if restaurant is approved (for demo)
+    if (req.user.role !== 'super-admin' && menuItem.restaurant.owner.toString() !== req.user.id && !menuItem.restaurant.approved) {
       return res.status(403).json({ message: 'Access denied' });
     }
 

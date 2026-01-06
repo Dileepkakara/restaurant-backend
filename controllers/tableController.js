@@ -11,8 +11,8 @@ export const getTables = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    // Check if user owns this restaurant or is super-admin
-    if (req.user.role !== 'super-admin' && restaurant.owner.toString() !== req.user.id) {
+    // Check if user owns this restaurant or is super-admin, or if restaurant is approved (for demo)
+    if (req.user.role !== 'super-admin' && restaurant.owner.toString() !== req.user.id && !restaurant.approved) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -34,8 +34,8 @@ export const createTable = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    // Check if user owns this restaurant or is super-admin
-    if (req.user.role !== 'super-admin' && restaurant.owner.toString() !== req.user.id) {
+    // Check if user owns this restaurant or is super-admin, or if restaurant is approved (for demo)
+    if (req.user.role !== 'super-admin' && restaurant.owner.toString() !== req.user.id && !restaurant.approved) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -70,8 +70,8 @@ export const updateTable = async (req, res) => {
       return res.status(404).json({ message: 'Table not found' });
     }
 
-    // Check if user owns the restaurant or is super-admin
-    if (req.user.role !== 'super-admin' && table.restaurant.owner.toString() !== req.user.id) {
+    // Check if user owns the restaurant or is super-admin, or if restaurant is approved (for demo)
+    if (req.user.role !== 'super-admin' && table.restaurant.owner.toString() !== req.user.id && !table.restaurant.approved) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -95,8 +95,8 @@ export const deleteTable = async (req, res) => {
       return res.status(404).json({ message: 'Table not found' });
     }
 
-    // Check if user owns the restaurant or is super-admin
-    if (req.user.role !== 'super-admin' && table.restaurant.owner.toString() !== req.user.id) {
+    // Check if user owns the restaurant or is super-admin, or if restaurant is approved (for demo)
+    if (req.user.role !== 'super-admin' && table.restaurant.owner.toString() !== req.user.id && !table.restaurant.approved) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
