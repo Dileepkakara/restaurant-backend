@@ -21,7 +21,10 @@ const app = express();
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: true }));
+app.use(cors({ 
+  origin: true, // Allow all origins for development
+  credentials: true 
+}));
 app.use(morgan('dev'));
 app.use(authMiddleware);
 app.use(requestLogger);
