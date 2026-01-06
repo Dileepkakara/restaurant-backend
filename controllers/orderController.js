@@ -29,7 +29,10 @@ export const getOrders = async (req, res) => {
             .populate('items.menuItem', 'name price')
             .sort({ createdAt: -1 });
 
-        res.json(orders);
+        // Filter out orders where table population failed (table was deleted or invalid)
+        const validOrders = orders.filter(order => order.table !== null);
+
+        res.json(validOrders);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to fetch orders' });
