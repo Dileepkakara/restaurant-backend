@@ -17,9 +17,13 @@ export const getOrders = async (req, res) => {
             return res.status(403).json({ message: 'Access denied' });
         }
 
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
         const orders = await Order.find({ 
             restaurant: restaurantId,
-            table: { $exists: true, $ne: null } // Only show orders with valid table association (customer orders)
+            table: { $exists: true, $ne: null }, // Only show orders with valid table association (customer orders)
+            createdAt: { $gte: thirtyDaysAgo } // Only show orders from last 30 days (exclude old demo data)
         })
             .populate('table', 'tableNumber')
             .populate('items.menuItem', 'name price')
