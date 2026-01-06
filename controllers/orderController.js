@@ -17,7 +17,10 @@ export const getOrders = async (req, res) => {
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const orders = await Order.find({ restaurant: restaurantId })
+        const orders = await Order.find({ 
+            restaurant: restaurantId,
+            table: { $exists: true, $ne: null } // Only show orders with valid table association (customer orders)
+        })
             .populate('table', 'tableNumber')
             .populate('items.menuItem', 'name price')
             .sort({ createdAt: -1 });
