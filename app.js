@@ -37,6 +37,9 @@ app.use('/api/tables', tableRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/logs', logsRoutes);
 
+// Health check for Render
+app.get('/', (req, res) => res.json({ status: 'ok', message: 'Restaurant Backend API' }));
+
 // health
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
