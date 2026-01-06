@@ -40,6 +40,13 @@ app.use('/api/logs', logsRoutes);
 // Health check for Render
 app.get('/', (req, res) => res.json({ status: 'ok', message: 'Restaurant Backend API' }));
 
+// Debug endpoint to check environment variables
+app.get('/api/debug', (req, res) => res.json({ 
+  frontend_url: process.env.FRONTEND_URL,
+  mongodb_uri: process.env.MONGODB_URI ? 'Set' : 'Not set',
+  port: process.env.PORT
+}));
+
 // health
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
