@@ -26,5 +26,9 @@ const restaurantSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Add indexes for faster queries
+restaurantSchema.index({ status: 1 });
+restaurantSchema.index({ approved: 1 });
+
 const Restaurant = mongoose.models.Restaurant || mongoose.model('Restaurant', restaurantSchema);
 export default Restaurant;

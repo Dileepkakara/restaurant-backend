@@ -5,6 +5,7 @@ import Table from '../models/Table.js';
 export const getOrders = async (req, res) => {
     try {
         const { restaurantId } = req.params;
+        const { status, limit = 50 } = req.query; // Add status filter and limit
 
         // Check if restaurant exists and user has access
         const restaurant = await Restaurant.findById(restaurantId);
@@ -17,17 +18,27 @@ export const getOrders = async (req, res) => {
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const orders = await Order.find({ 
+        // Build query
+        const query = { 
             restaurant: restaurantId,
-            table: { $exists: true, $ne: null }, // Only show orders with valid table association (customer orders)
-            createdAt: { $gte: thirtyDaysAgo } // Only show orders from last 30 days (exclude old demo data)
-        })
+            table: { $exists: true, $ne: null } // Only show orders with valid table association (customer orders)
+        };
+
+        // Add status filter if provided
+        if (status && status !== 'all') {
+            if (status === 'active') {
+                // Active orders: Pending, Preparing, Ready
+                query.status = { $in: ['Pending', 'Preparing', 'Ready'] };
+            } else {
+                query.status = status;
+            }
+        }
+
+        const orders = await Order.find(query)
             .populate('table', 'tableNumber')
             .populate('items.menuItem', 'name price')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit));
 
         // Filter out orders where table population failed (table was deleted or invalid)
         const validOrders = orders.filter(order => order.table !== null);

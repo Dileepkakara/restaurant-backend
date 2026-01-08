@@ -12,30 +12,33 @@ export const register = async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already in use' });
 
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
+    // Parallel: hash password and handle avatar upload
+    const [hash, uploadResult] = await Promise.all([
+      bcrypt.hash(password, 10), // Simplified, was genSalt then hash
+      req.file ? new Promise((resolve, reject) => {
+        const folder = (role || '').toLowerCase() === 'admin' ? 'restaurant_logos' : 'avatars';
+        const stream = cloudinary.uploader.upload_stream({ folder }, (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        });
+        stream.end(req.file.buffer);
+      }) : Promise.resolve(null)
+    ]);
 
     const user = new User({ name, email, password: hash, role: role || 'customer', location, approved: role === 'super-admin' });
 
-    // For non-admins, allow storing avatar on user
-    if (role && role.toLowerCase() !== 'admin') {
-      if (avatarUrl) user.avatar = { url: avatarUrl };
-      if (req.file) {
-        const uploadResult = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream({ folder: 'avatars' }, (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          });
-          stream.end(req.file.buffer);
-        });
-        user.avatar = { url: uploadResult.secure_url, public_id: uploadResult.public_id };
-      }
+    // Set avatar
+    if (avatarUrl) {
+      user.avatar = { url: avatarUrl };
+    } else if (uploadResult) {
+      user.avatar = { url: uploadResult.secure_url, public_id: uploadResult.public_id };
     }
 
     await user.save();
 
+    let restaurant = null;
     if ((role || '').toLowerCase() === 'admin') {
-      const r = new Restaurant({
+      restaurant = new Restaurant({
         name: restaurantName || `${name}'s Restaurant`,
         address: location,
         phoneNumber: phoneNumber,
@@ -44,42 +47,39 @@ export const register = async (req, res) => {
         approved: false
       });
 
-      if (avatarUrl) r.logo = { url: avatarUrl };
-      if (req.file) {
-        const uploadResult = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream({ folder: 'restaurant_logos' }, (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          });
-          stream.end(req.file.buffer);
-        });
-        r.logo = { url: uploadResult.secure_url, public_id: uploadResult.public_id };
+      // Set logo
+      if (avatarUrl) {
+        restaurant.logo = { url: avatarUrl };
+      } else if (uploadResult) {
+        restaurant.logo = { url: uploadResult.secure_url, public_id: uploadResult.public_id };
       }
 
-      await r.save();
-
-      // Create subscription if plan is selected
+      // Parallel: save restaurant and find plan if needed
+      const promises = [restaurant.save()];
+      let plan = null;
       if (subscriptionPlan) {
-        const plan = await Plan.findById(subscriptionPlan);
+        promises.push(Plan.findById(subscriptionPlan));
+      }
+      const results = await Promise.all(promises);
+      if (subscriptionPlan) {
+        plan = results[1];
         if (plan) {
-          // Here you would typically create a subscription record
-          // For now, we'll just store the plan reference on the restaurant
-          r.subscriptionPlan = plan._id;
-          await r.save();
+          restaurant.subscriptionPlan = plan._id;
+          await restaurant.save(); // Additional save if plan found
         }
       }
 
-      user.restaurant = r._id;
+      user.restaurant = restaurant._id;
       await user.save();
     }
 
     if (user.role === 'admin' && !user.approved) {
-      await user.populate('restaurant');
+      await user.populate('restaurant', 'name address phoneNumber status approved subscriptionPlan');
       return res.status(201).json({ message: 'Registered. Pending approval by a Super Admin.', user: { id: user._id, email: user.email, name: user.name, role: user.role, approved: user.approved, restaurant: user.restaurant } });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    await user.populate('restaurant');
+    await user.populate('restaurant', 'name address phoneNumber status approved subscriptionPlan');
     res.json({ token, user: { id: user._id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, location: user.location, approved: user.approved, restaurant: user.restaurant } });
   } catch (e) {
     console.error(e);
@@ -96,7 +96,7 @@ export const login = async (req, res) => {
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
     if (user.role === 'admin' && !user.approved) return res.status(403).json({ message: 'Your registration is pending approval by a super admin' });
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    await user.populate('restaurant');
+    await user.populate('restaurant', 'name address phoneNumber status approved subscriptionPlan');
     res.json({ token, user: { id: user._id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, location: user.location, approved: user.approved, restaurant: user.restaurant } });
   } catch (e) {
     console.error(e);
